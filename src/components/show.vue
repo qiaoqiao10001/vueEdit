@@ -1,7 +1,7 @@
 <template>
   <div class="show">
     <h2 class="show-title">运行结果</h2>
-    <div class="show-box" ref="display"></div>
+    <div class="show-box" ref="show"></div>
   </div>
 </template>
 
@@ -10,7 +10,7 @@ export default {
   props: {
     code: {
       type: String,
-      code: ""
+      default: ""
     }
   },
   methods: {
@@ -28,16 +28,34 @@ export default {
       return "";
     },
     run() {
-      console.log(123);
       // 运行代码的逻辑是获取到code字符串，当做一个组件 ，使用vue.extend构造Vue组件，手动挂载到showbox下
       // 获取html ,css ,js
       const template = this.getSource("template");
-      const script = this.getSource("template").replace(
+      const script = this.getSource("script").replace(
         /export default/,
         "return"
       );
       const style = this.getSource("style");
-      console.log(template);
+      let component = {}
+      if(script){
+        component = new Function(script)()
+      }
+      if(template){
+        component.template = template;
+        // 构造组件构造器
+        let instance = new (this.$options._base.extend(component))
+        this.$refs.show.appendChild(instance.$mount().$el)
+      }
+
+      if(style){
+        let el = document.createElement('style')
+        el.type = 'text/css'
+        el.innerText = style
+        document.body.appendChild(el)
+      }
+
+
+      // console.log(instance)
     }
   }
 };
